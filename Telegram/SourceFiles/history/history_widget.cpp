@@ -5229,6 +5229,19 @@ void HistoryWidget::keyPressEvent(QKeyEvent *e) {
 	} else if (e->key() == Qt::Key_Down) {
 		if (!(e->modifiers() & (Qt::ShiftModifier | Qt::MetaModifier | Qt::ControlModifier))) {
 			_scroll->keyPressEvent(e);
+		} else if ((e->modifiers() & (Qt::ShiftModifier | Qt::MetaModifier | Qt::ControlModifier)) == Qt::ControlModifier) {
+			if (_history && _history->lastMsg && !_editMsgId) {
+				if (_replyToId) {
+					HistoryItem *item = App::histItemById(_history->channelId(), _replyToId)->nextItem();
+					if (item) App::contextItem(item);
+					else { cancelReply(); return; }
+				} else {
+					return;
+				}
+				Ui::showPeerHistory(_peer, App::contextItem()->id);
+				onReplyToMessage();
+				return;
+			}
 		}
 	} else if (e->key() == Qt::Key_Up) {
 		if (!(e->modifiers() & (Qt::ShiftModifier | Qt::MetaModifier | Qt::ControlModifier))) {
@@ -5240,6 +5253,20 @@ void HistoryWidget::keyPressEvent(QKeyEvent *e) {
 				}
 			}
 			_scroll->keyPressEvent(e);
+		} else if ((e->modifiers() & (Qt::ShiftModifier | Qt::MetaModifier | Qt::ControlModifier)) == Qt::ControlModifier) {
+			if (_history && _history->lastMsg && !_editMsgId) {
+				if (_replyToId) {
+					HistoryItem *item = App::histItemById(_history->channelId(), _replyToId);
+					App::contextItem(item->previousItem());
+				} else {
+					App::contextItem(_history->lastMsg);
+				}
+				if (App::contextItem()) {
+					Ui::showPeerHistory(_peer, App::contextItem()->id);
+					onReplyToMessage();
+				}
+				return;
+			}
 		}
 	} else if (e->key() == Qt::Key_Return || e->key() == Qt::Key_Enter) {
 		onListEnterPressed();
